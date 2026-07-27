@@ -1,6 +1,6 @@
 // Load environment variables first
 require('dotenv').config();
-
+ 
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session');
@@ -14,7 +14,7 @@ const Stripe = require('stripe');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
-
+ 
 // Routes
 const dashboardRoutes = require('./routes/dashboard');
 const eventRoutes = require('./routes/events');
@@ -27,24 +27,24 @@ const contactRoutes = require('./routes/contact');
 const authRoutes = require('./routes/auth');
 const staffRoutes = require('./routes/staff');
 const { requireLogin } = require('./middleware/auth');
-
+ 
 // Models
 const Event = require('./models/Event');
 const Booking = require('./models/Booking');
-
+ 
 const app = express();
-
+ 
 // Configuration
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/event_management';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'your_session_secret';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-
+ 
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
-
+ 
 // Setup Nodemailer Transporter
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -58,12 +58,12 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false
   }
 });
-
+ 
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 console.log('✅ View engine setup completed');
-
+ 
 // Middleware
 app.use(compression());
 app.use(express.urlencoded({ extended: true }));
@@ -98,7 +98,7 @@ app.use(rateLimit({
   max: 100,
   message: 'Too many requests, please try again later.'
 }));
-
+ 
 // Global view variables (including flash messages)
 app.use((req, res, next) => {
   res.locals.nonce = uuidv4();
@@ -112,10 +112,10 @@ app.use((req, res, next) => {
   delete req.session.success;
   next();
 });
-
+ 
 // Routes
 app.get('/favicon.ico', (req, res) => res.status(204).end());
-
+ 
 app.get('/', async (req, res) => {
   try {
     const events = await Event.find({ status: 'approved' }).sort({ date: 1 }).limit(6).lean();
@@ -138,7 +138,7 @@ app.get('/', async (req, res) => {
     });
   }
 });
-
+ 
 app.get('/dashboard', requireLogin, async (req, res) => {
   try {
     if (req.session.user.role === 'staff') {
@@ -172,7 +172,7 @@ app.get('/dashboard', requireLogin, async (req, res) => {
     });
   }
 });
-
+ 
 // Register Routes
 app.use('/events', eventRoutes);
 app.use('/bookings', bookingRoutes);
@@ -184,7 +184,7 @@ app.use('/contact', contactRoutes);
 app.use('/auth', authRoutes);
 app.use('/staff', staffRoutes);
 app.use('/dashboard', dashboardRoutes);
-
+ 
 // 404 Page
 app.use((req, res) => {
   res.status(404).render('error', {
@@ -196,7 +196,7 @@ app.use((req, res) => {
     success: null
   });
 });
-
+ 
 // Error Handler
 app.use((err, req, res, next) => {
   console.error(`[${new Date().toISOString()}] Error:`, err);
@@ -209,12 +209,17 @@ app.use((err, req, res, next) => {
     success: null
   });
 });
-
+ 
 // Handle uncaught exceptions
 process.on('uncaughtException', err => {
   console.error(`[${new Date().toISOString()}] Uncaught Exception:`, err);
   process.exit(1);
 });
-
-// Start Server
-app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+ 
+// Start Server (only when run directly, e.g. `npm start` or `node app.js`)
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
+}
+ 
+module.exports = app;
+ 
