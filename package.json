@@ -1,5 +1,5 @@
 {
-  "name": "event_management_system",
+  "name": "eventora",
   "version": "1.0.0",
   "scripts": {
     "start": "node app.js"

@@ -34,6 +34,10 @@ const Booking = require('./models/Booking');
  
 const app = express();
  
+// Vercel (and most hosting platforms) sit behind a proxy, so Express needs
+// this to correctly read client IPs, secure cookies, and X-Forwarded-* headers.
+app.set('trust proxy', 1);
+ 
 // Configuration
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/event_management';
@@ -191,7 +195,7 @@ app.use((req, res) => {
     title: 'Not Found',
     message: 'Page not found',
     status: 404,
-    user: req.session.user,
+    user: req.session ? req.session.user : null,
     errors: [],
     success: null
   });
@@ -204,7 +208,7 @@ app.use((err, req, res, next) => {
     title: 'Server Error',
     message: 'Something went wrong',
     status: 500,
-    user: req.session.user,
+    user: req.session ? req.session.user : null,
     errors: [],
     success: null
   });
@@ -222,4 +226,3 @@ if (require.main === module) {
 }
  
 module.exports = app;
- 
